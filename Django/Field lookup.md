@@ -4,11 +4,15 @@
 
 
 
+
+
 기본적인 사용법은 아래와 같다.    
 
 ```python
 field__lookuptype = value # __ 는 double underscore
 ```
+
+
 
 
 
@@ -27,7 +31,7 @@ Entry.objects.filter(pub_date__lte = '2006-01-01')
 
 
 
-## Lookup list
+## List
 
 * contains : Case - sensitive
 
