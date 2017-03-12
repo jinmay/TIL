@@ -113,6 +113,8 @@ class Pizza(models.Model):
 
 [Model option references](https://docs.djangoproject.com/en/1.10/ref/models/options/)
 
+Give model metadata by using inner class class Meta
+
 ~~~python
 from django.db import models
 
@@ -129,4 +131,95 @@ class Ox(models.Model):
 
 
 #### Model method
+
+> Model methods should act on a particular model instance
+
+~~~python
+from django.db import models
+
+class Person(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    birth_date = models.DateField()
+
+    def baby_boomer_status(self):
+        "Returns the person's baby-boomer status."
+        import datetime
+        if self.birth_date < datetime.date(1945, 8, 1):
+            return "Pre-boomer"
+        elif self.birth_date < datetime.date(1965, 1, 1):
+            return "Baby boomer"
+        else:
+            return "Post-boomer"
+
+    def _get_full_name(self):
+        "Returns the person's full name."
+        return '%s %s' % (self.first_name, self.last_name)
+    full_name = property(_get_full_name)
+~~~
+
+
+
+
+
+## Model Inheritance
+
+* Abstract base classes
+
+~~~python
+from django.db import models
+
+class CommonInfo(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.PositiveIntegerField()
+
+    class Meta:
+        abstract = True
+
+class Student(CommonInfo):
+    home_group = models.CharField(max_length=5)
+~~~
+
+Student model has three fields : **name**, **age**, **home_group**  
+And CommonInfo model doesn't generate a database table or have a manager
+
+
+
+* Meta Inheritance
+
+~~~python
+from django.db import models
+
+class CommonInfo(models.Model):
+    # ...
+    class Meta:
+        abstract = True
+        ordering = ['name']
+
+class Student(CommonInfo):
+    # ...
+    class Meta(CommonInfo.Meta):
+        db_table = 'student_info'
+~~~
+
+> If a child class does not declare its own [Meta](https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options) class, it will inherit the parent’s [Meta](https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options). If the child wants to extend the parent’s [Meta](https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options) class, it can subclass it
+
+ 
+
+
+
+#### Organizing models in a package
+
+> Remove `models.py` and create a `myapp/models/`directory with an `__init__.py` file and the files to store your models. You must import the models in the `__init__.py` file.
+
+
+
+For example, if you had `organic.py` and `synthetic.py` in the `models` directory:
+
+myapp/models/ ____init____.py
+
+~~~python
+from .organic import Person
+from .synthetic import Robot
+~~~
 
