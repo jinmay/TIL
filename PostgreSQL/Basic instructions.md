@@ -24,6 +24,12 @@ psql <DB명>
 create database <DB명>
 ```
 
+- 데이터베이스 삭제
+
+~~~sql
+drop database <DB명>
+~~~
+
 - 스키마 목록 확인
 
 ```sql
