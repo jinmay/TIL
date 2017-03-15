@@ -18,6 +18,16 @@ div {
 * border-style
 * border-color
 * border-width(두께)
+* border-radius : 둥근 테두리 만들기
+
+~~~css
+div {
+  border-radius: 50px 40px 30px 20px;
+  /* 왼쪽위 오른쪽위 오른쪽아래 왼쪽아래 */
+}
+~~~
+
+
 
 
 
