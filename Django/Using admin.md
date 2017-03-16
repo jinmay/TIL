@@ -56,3 +56,11 @@ list_filter = ['pub_date']
 ~~~python
 search_fields = ['question_text']
 ~~~
+* 자동으로 채워지는 필드 : name필드에 맞춰서 slug 필드의 내용이 채워짐
+
+~~~python
+prepopulated_fields = {
+  'slug': ('name', )
+}
+~~~
+
