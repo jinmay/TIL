@@ -79,3 +79,12 @@ print(q)
 Blog.objects.filter(Q(id__in=[1, 2]) & Q(name__contains='first'))
 ~~~
 
+
+
+## Retrieving span relationships
+
+~~~python
+Question.objects.filter(choice__choice_text__icontains = 'game')
+# 모델명은 소문자로 적어야 한다
+~~~
+
