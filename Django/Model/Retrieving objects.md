@@ -76,6 +76,8 @@ print(q)
 여러개의 매칭 조건을 주고 싶을때 사용한다  
 
 ~~~python
+from django.db.models import Q
+
 Blog.objects.filter(Q(id__in=[1, 2]) & Q(name__contains='first'))
 ~~~
 
