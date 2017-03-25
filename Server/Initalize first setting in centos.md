@@ -99,6 +99,6 @@ sudo systemctl start postgresql
 sudo systemctl enable postgresql
 
 # 설치할 때 부여받은 postgres로 유저 전환
-sudo -i -u postgres
+sudo su - postgres
 ~~~
 
