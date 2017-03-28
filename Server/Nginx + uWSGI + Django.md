@@ -6,13 +6,13 @@
 
 >  centos7
 >
-> python3.6
+>  python3.6
 >
-> Django1.10
+>  Django1.10
 >
-> virtualenv
+>  virtualenv
 >
-> Nginx
+>  Nginx
 
 
 
@@ -117,4 +117,20 @@ STATICROOT = os.path.join(BASE_DIR, 'static/')
 ~~~shell
 python manage.py collectstatic
 ~~~
+
+
+
+
+
+
+
+##### 참고 사이트
+
+[https://gist.github.com/evildmp/3094281](https://gist.github.com/evildmp/3094281)
+
+[nginx params](https://github.com/nginx/nginx/blob/master/conf/uwsgi_params)
+
+[http://brownbears.tistory.com/16](http://brownbears.tistory.com/16)
+
+[http://rumblefish.tistory.com/59](http://rumblefish.tistory.com/59)
 

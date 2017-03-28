@@ -49,3 +49,11 @@ repo. 에 대한 정보는 [here](http://nginx.org/en/linux_packages.html#stable
 yum install nginx
 ~~~
 
+
+
+
+
+##### 참고 사이트
+
+[http://altkeycode.tistory.com/10](http://altkeycode.tistory.com/10)
+

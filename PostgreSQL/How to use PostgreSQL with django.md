@@ -5,6 +5,7 @@ In **settings.py**
 ~~~python
 # 집에서 공부할때 쓰던 세팅
 # 실 서비스 배포하고 운영할땐 다르게 해야한다
+# 시에라 사용할때 기준..!
 
 DATABASES = {
     'default': {

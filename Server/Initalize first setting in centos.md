@@ -40,6 +40,12 @@ yum install -y gcc
 약간의 시간이 걸린다
 
 ~~~shell
+
+~~~
+
+
+
+~~~shell
 ./configure
 ~~~
 
@@ -54,6 +60,7 @@ make install
 만약 zlib 에러가 뜬다면
 
 ~~~shell
+# example
 ./configure --prefix=/root/Python-2.7.8 --with-zlib-dir=/usr/local/lib
 ~~~
 
