@@ -64,3 +64,45 @@ prepopulated_fields = {
 }
 ~~~
 
+
+
+
+
+
+
+### admin 적용방식
+
+1. ~~~python
+   # admin.py
+   # register 함수 이용
+   admin.site.register(Bookmark)
+   ~~~
+
+2. ~~~python
+   # admin.py
+   # 데코레이터 이용
+   @admin.register(Bookmark)
+   class BookmarkAdmin(admin.ModelAdmin):
+       list_display = ['id', 'title']
+   ~~~
+
+
+
+### Custom actions
+
+선택된 레코드들에 대해 한번에 액션을 주기위해서 자주 사용된다
+
+**모든 액션은 첫 번째 인자로 request를 받고 두번째 인자로 queryset을 받아야 한다!!**
+
+~~~python
+@admin.register(Bookmark)
+class BookmarkAdmin(admin.ModelAdmin):
+    list_display = ['id', 'title']
+    actions = ['make_something']
+    
+    def make_something(self, request, queryset):
+        pass
+    # 액션 이름은 메소드명과 같은데 바꿔주고 싶으면
+    self.short_description = "Change status to something"
+~~~
+

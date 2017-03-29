@@ -85,6 +85,21 @@ class Car(models.Model):
     # ...
 ~~~
 
+**ForeignKey.on_delete** 옵션
+
+1 측의 row가 삭제될 경우, N 측의 처리에 대한 동작을 설정할 수 있다
+
+* CASCADE : 연결된 레코드를 일괄 삭제(default)
+* PROTECT : ProtectedError 발생(삭제 방지)
+
+1 : N 관계에서 1 -> N측으로 접근 : **모델명소문자_set**
+
+~~~django
+Post.comment_set.all()
+~~~
+
+
+
 2. ManyToMany
 
 ~~~python
