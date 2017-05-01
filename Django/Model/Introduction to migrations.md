@@ -3,24 +3,41 @@
 * 자주 사용되는 명령어
 
   1. makemigrations
+     * 모델에 대한 변경을 토대로 새로운 마이그레이션 파일을 생성한다
+     * migrations 이름을 바꾸고 싶다면  
 
-     migrations 이름을 바꾸고 싶다면  
+  ~~~python
+  python manage.py makemigrations --name <changed_my_model> <your_app_label>
+  ~~~
 
-     ~~~python
-     python manage.py makemigrations --name <changed_my_model> <your_app_label>
+  ​
+
+  1. migrate
+
+     * 마이그레이션 적용과 적용한 것을 취소하는 역할을 수행한다
+
+  2. showmigrations
+
+     * 프로젝트의 마이그레이션 상태를 보여준다
+
+     ~~~shell
+     python manage.py showmigrations 
+
+     # 뒤에 appname을 적으면 해당 app애대한 내용만 출력
+     python manage.py showmigrations blog
      ~~~
 
      ​
 
-  2. migrate
+  3. sqlmigrate
 
-  3. showmigrations
+     * 해당 마이그레이션에 대한 SQL문을 보여준다
 
-  4. sqlmigrate
+       ~~~shell
+       # 사용법
+       python manage.py sqlmigrate blog 0012 # 앱 이름 / 마이그레이션 파일명을 지정해준다
+       ~~~
 
-     ~~~python
-     python manage.py sqlmigrate <app_label> <migration_name>
-     ~~~
 
 
 

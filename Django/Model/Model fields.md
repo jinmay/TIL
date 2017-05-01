@@ -33,32 +33,6 @@ class Album(models.Model):
 
 #### Field options
 
-* null ( default = false )
-* blank ( default = false )
-
->  [`null`](https://docs.djangoproject.com/en/1.10/ref/models/fields/#django.db.models.Field.null) is purely database-related, whereas [`blank`](https://docs.djangoproject.com/en/1.10/ref/models/fields/#django.db.models.Field.blank) is validation-related. If a field has [`blank=True`](https://docs.djangoproject.com/en/1.10/ref/models/fields/#django.db.models.Field.blank), form validation will allow entry of an empty value. If a field has [`blank=False`](https://docs.djangoproject.com/en/1.10/ref/models/fields/#django.db.models.Field.blank), the field will be required.
-
-* choice
-
-~~~python
-from django.db import models
-
-class Person(models.Model):
-    SHIRT_SIZES = (
-        ('S', 'Small'),
-        ('M', 'Medium'),
-        ('L', 'Large'),
-    )
-    name = models.CharField(max_length=60)
-    shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES)
-~~~
-
-​	first element = the value in database  
-​	second element = the value that will be displayed
-
-* help_text
-* unique - [refer](https://docs.djangoproject.com/en/1.10/ref/models/fields/#common-model-field-options)
-* primary_key
 * verbose_name
 
 ~~~python
