@@ -168,10 +168,207 @@ id = models.AutoField(primary_key=True)
 
 ### Verbose Field names
 
-ForeignKey / ManyToManyField / OneToOneField 필드를 제외하고 각각의 필드 타입은 
+ForeignKey / ManyToManyField / OneToOneField 필드를 제외하고 각각의 필드 타입은 positional argument를 선택적으로 가지고 있다 - verbose name이라 부른다.
+
+만약 verbose name이 주어지지 않는다면, 장고는 자동적으로 필드의 속성 이름을 사용 할 것이다  
+이 때, 언더스코어(_)는 띄어쓰기로 변한다
+
+~~~python
+# verbose name : person's first name
+first_name = models.CharField("person's first name", max_length = 20)
+
+# verbose name : first name
+first_name = models.CharField(max_length = 20)
+~~~
+
+**ForeignKey / ManyToManyField / OneToOneField**는 첫 번째 인자로 모델 클래스를 필요로하고,  verbose_name은 keyword argument로 사용한다
+
+~~~python
+poll = models.ForeignKey(
+	Poll,
+    verbose_name = "the related poll",
+)
+
+sites = models.ManyToManyField(Site, verbose_name = "list of sites")
+~~~
+
+verbose_name의 첫 글자를 대문자로 사용하지 않는 것이 관습이다. 장고는 자동적으로 첫 글자를 대문자화 한다
+
+
+
+### Relationships
+
+RDB의 장점은 서로가  관계맺는 것에 있다. 장고는 세 가지의 일반적인 데이터베이스 관계를 가지고있다.
+
+* many-to-one
+* many-to-many
+* one-to-one
+
+1. Many-to-one relationships
+
+many-to-many 관계를 정의하기 위해서 django.db.models.ForeignKey를 사용한다. 단지 어떠한 필드 타입을 사용하는 것처럼 사용하기만 하면된다 - 관계맺을 모델 클래스를 포함하면서.
+
+**ForeignKey**는 positional argument를 필요로 한다 
+
+~~~python
+from django.db import models
+
+class Manufacturer(models.Model):
+    # ...
+    pass
+
+class Car(models.Model):
+    manufacturer = models.ForeignKey(Manufacturer)
+    # ...
+~~~
+
+위의 예시에서, Car model은 Manufacturer 을 가지고 있다 - 즉, Manufacturer는 여러개의 Car를 가질 수 있지만 Car는 단 하나의 Manufacturer를 가질 수 있다
+
+또한 재귀적인 관계와 아직 정의되지 않은 모델과의 관계를 생성할 수 있다
+
+**필수는 아니지만 ForeignKey 필드명은 소문자를 사용하는 걸 권장한다**
 
 
 
 
 
-* ​
+2. Many-to-many relationships
+
+many-to-many 관계를 정의하기 위해서 **ManyToManyField**를 사용한다.
+
+또한 positional argument를 필요로 한다
+
+~~~python
+from django.db import models
+
+class Topping(models.Model):
+    # ...
+    pass
+
+class Pizza(models.Model):
+    # ...
+    toppings = models.ManyToManyField(Topping)
+~~~
+
+위의 예시코드에서, Topping은 여러개의 Pizza를 가질 수 있고 Pizza도 여러개의 Topping를 가질 수 있다
+
+재귀적 관계와 아직 정의되지 않은 모델과의 관계를 만들 수 있다
+
+**필수는 아니지만 ManyToMany 필드명은 복수형으로 사용하는 걸 권장한다**
+
+ ManyToManyField가 어느 모델클래스에 있는 지 상관없지만 한 군데에서만 사용해야 한다
+
+하지만 위의 예시처럼 피자가 여러개의 토핑을 가지는 게 더 자연스러운 흐름이기 때문에 "natual함"을 고려하는게 좋다
+
+추가적으로 필수적이지 않은 argument를 더 가질 수 있다 - [ref](https://docs.djangoproject.com/en/1.11/ref/models/fields/#manytomany-arguments)
+
+
+
+#### Extra fields on many-to-many relationships
+
+피자와 토핑의 관계처럼 간단한 many-to-many필드를 사용할 때는 일반적인 ManyToManyField로 충분하다
+
+하지만 가끔 두 모델사이 관계의 정보를 필요로 할 때가 있다.
+
+예를 들면 사람과 그룹의 관계이다. person은 multiple group에 속할 수 있고 group에는 multiple person이 존재 할 수있다. 이러한 상황일때 추가적인 필드를 생성할 수 있다(intermediate model이라 부르는 것 같다). intermediate model은 **through** argument 를 사용함으로서 관계될 수 있다.
+
+~~~python
+from django.db import models
+
+class Person(models.Model):
+    name = models.CharField(max_length = 20)
+    
+class Group(models.Model):
+    name = models.CharField(max_length = 20)
+    members = models.ManyToManyField(Person, through = 'Membership')
+    
+class Membership(models.Model):
+    person = models.ForeignKey(Person)
+    group = models.ForeignKey(Group)
+    date_joined = models.DateField()
+    invite_reason = models.CharField(max_length = 64)
+~~~
+
+위 코드는 Person과 Group 두 모델이 어떻게 관련되어 있는지 알 수 있다
+
+intermediate model을 정의할때 어떠한 모델들이 관련되어 있는지 명확하게 정의해야 한다
+
+intermediate model에는 몇 가지 제한적인 점이 있다
+
+* 오직 하나의 foreignkey 필드만 사용할 수 있거나 여러 foreignkey를 사용할 땐 through를 써야만 한다  
+  **만약 through 없이 두 개 이상의 ForeignKey 필드가 있다면 Validation error이 발생한다**
+* For a model which has a many-to-many relationship to itself through an intermediary model, two foreign keys to the same model are permitted, but they will be treated as the two (different) sides of the many-to-many relationship. If there are *more* than two foreign keys though, you must also specify `through_fields` as above, or a validation error will be raised.
+* When defining a many-to-many relationship from a model to itself, using an intermediary model, you *must* use[`symmetrical=False`](https://docs.djangoproject.com/en/1.11/ref/models/fields/#django.db.models.ManyToManyField.symmetrical) (see [the model field reference](https://docs.djangoproject.com/en/1.11/ref/models/fields/#manytomany-arguments))
+
+
+
+**일반적인 many-to-many 필드와는 다르게 add() / create() / set() / remove() 을 사용할 수 없다**
+
+하지만 clear() 메소드는 many-to-many 관계를 지우는데 사용될 수 있다
+
+일단 intermediate model의 인스턴스를 생성함으로서 many-to-many  관계를 만들었다면, query를 사용할 있다
+
+단지 일반적인 many-to-many 관계처럼 사용하면 된다
+
+~~~python
+Group.objects.filter(members__name__startswith = 'Paul')
+~~~
+
+intermediate model을 사용할때 또한 쿼리를 날릴 수 있다
+
+~~~python
+Person.objects.filter(
+	group__name = "The Beatles",
+    membership__date_joined__gt = date(1961, 1, 1)
+)
+~~~
+
+membership의 정보에 접근하고 싶다면 Membership model에 직접적으로 쿼리를 하면 된다
+
+~~~django
+ringos_membership = Membership.objects.get(group = beatles, person = ringo)
+
+ringos_membership.date_joined
+ringos_membership.invite_reason
+~~~
+
+
+
+3. One-to-one relationships
+
+one-to-one  관계를 정의하기 위해서 OneToOneField를 사용한다
+
+한 오브젝트의 primary key를 확장하는 데에 가장 좋은 방법이다
+
+OneToOneField 또한 positional argument 하나를 필요로 한다
+
+예를 들어, address / phone_number 를 가지고 있는 place 데이터베이스를 만들었고, 그 위에 restaurant 를 만들고 싶다면 코드를 반복하는 대신에 OneToOneField를 사용하면 된다
+
+ForeignKey 처럼, 재귀적 관계로 정의 가능하다
+
+example - [참고](https://docs.djangoproject.com/en/1.11/topics/db/examples/one_to_one/)
+
+~~~python
+from django.db import models
+
+class Place(models.Model):
+    name = models.CharField(max_length = 50)
+    address = models.CharField(max_length = 80)
+    
+class Restaurant(models.Model):
+    place = models.OneToOneField(
+        Place,
+    	primary_key = True,    
+  	)
+    serves_hot_dogs = models.BooleanField(default = False)
+    server_pizza = models.BooleanField(default = False)
+    
+class Waiter(models.Model):
+    restaurant = models.ForeignKey(Restaurant)
+    name = models.CharField(max_length = 50)
+~~~
+
+parent_link argument를 받을 수 있다  
+과거에 OneToOneField는 자동적으로 primary key가 됐지만 지금은 아니다  
+그러므로 지금은 여러개의 OneToOneField를 가지는 것이 가능하다
+
