@@ -372,3 +372,75 @@ parent_link argument를 받을 수 있다
 과거에 OneToOneField는 자동적으로 primary key가 됐지만 지금은 아니다  
 그러므로 지금은 여러개의 OneToOneField를 가지는 것이 가능하다
 
+### Models across files
+
+다른 app의 모델과 relate 할 수 있다. 이렇게 하기 위해서는 models.py의 맨 위에서 임포트를 해야 한다
+
+~~~python
+from django.db import models
+from geograpy.models import Zipcode
+
+class Restaurant(models.Model):
+    zip_code = models.ForeignKey(
+    	Zipcode,
+        blank = True,
+        null = True,
+    )
+~~~
+
+
+
+### Field name restrictions
+
+두 가지의 필드명 제한점이 있다
+
+1. 파이썬 예약어는 사용될 수 없다. 파이썬 문법에러를 일으키기 때문이다
+2. 필드명은 2개 이상의 언더스코어(_)를 가질 수 없다. 장고 쿼리 룩업 신택스 에러를 일으키기 때문이다
+
+**필드명은 데이터베이스의 컬럼명과 일치할 필요는 없다** - [참고(db_column)](https://docs.djangoproject.com/en/1.11/ref/models/fields/#django.db.models.Field.db_column)
+
+**join, where, select 와 같은SQL 예약어는 필드명으로 사용가능 하다.** 장고는 데이터베이스의 테이블명과 컬럼명을 자동으로 모두 이스케이프 하기 때문이다. 
+
+
+
+### Custom field types
+
+커스텀 필드를 만들 수 있다. [Write custom fields](https://docs.djangoproject.com/en/1.11/howto/custom-model-fields/)
+
+
+
+### Meta options
+
+Class meta 를 사용함으로서 메타데이터를 줄 수 있다
+
+~~~python
+from django.db import models
+
+class Ox(models.Model):
+	horn_length = models.IntegerField()
+    
+    class Meta:
+        ordering = ['horn_length']
+        verbose_name_plural = 'oxen'
+~~~
+
+모델의 메타데이터란 필드 이외의 모든 것들이라고 이해하면 된다 - 정렬옵션(ordering), 테이블명(db_table) 과 같은 -
+
+ Class Meta는 필수 요소는 아니다
+
+가능한 메타 옵션 리스트 - [Model option reference](https://docs.djangoproject.com/en/1.11/ref/models/options/)
+
+
+
+### Model attributes
+
+**모델의 가장 중요한 속성은 Model manager 이다**
+
+모델 매니저는 모델의 인스턴스를 취득하고 데이터베이스 쿼리 오퍼레이션을 가능하게 만드는 중요한 속성이다. 커스텀되지 않았다면 기본 매니저명은 **objects**이다. **매니저는 오직 모델 클래스만을 통해서 사용 가능하다. 모델의 인스턴스는 매니저를 사용할 수 없다**
+
+
+
+### Model methods
+
+커스텀 메소드를 모델에 정의할 수 있다. Manager는 table-wide thing하게 사용되는 반면, 모델 메소드는 
+
