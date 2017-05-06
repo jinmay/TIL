@@ -442,5 +442,157 @@ class Ox(models.Model):
 
 ### Model methods
 
-커스텀 메소드를 모델에 정의할 수 있다. Manager는 table-wide thing하게 사용되는 반면, 모델 메소드는 
+커스텀 메소드를 모델에 정의할 수 있다. Manager는 table-wide thing하게 사용되는 반면, 모델 메소드는 특정한 모델 인스턴스에서만 사용한다. 모델 메소드는 로직처리를 한 장소 - 모델 - 에서 처리할 수 있는 효과적인 방법이다
 
+예를 들어, 아래와 같은 모델은 몇몇의 커스템 모델 메소드를 가진다
+
+~~~python
+from django.db import models
+
+class Person(models.Model):
+    first_name = models.CharField(max_length = 20)
+    last_name = models.CharField(max_length = 20)
+    birth_date = models.DateField()
+    
+    def baby_boomer_status(self):
+		"Returns the person's baby-boomer status."
+        import datetime
+        if self.birth_date < datetime.date(1945, 8, 1):
+            return "pre-boomer"
+        elif self.birth_date < datetime.date(1965, 1, 1):
+            return "Baby boomer"
+        else:
+            return "Post boomer"
+        
+        
+    @property
+    def full_name(self):
+        "Returns the person's full name."
+        return "%s %s" % (self.first_name, self.last_name)
+~~~
+
+Property에 대한 설명은 [여기](https://docs.djangoproject.com/en/1.11/glossary/#term-property)에 있다
+
+모델에 자동으로 생성되는 모델 메소드들이 있다. 아래에는 오버라이딩 해서 자주 사용되는 메소드들을 소개하겠다
+
+* __str__
+
+~~~python
+def __str__(self):
+    return self.first_name
+~~~
+
+어떠한 오브젝트이던 유니코드 representation을 리턴하는 파이썬 매직 메소드이다
+
+파이썬과 장고는 모델 인스턴스가 plain string로써 보여질 필요가 있을때 \__str__ 메소드를 사용한다
+
+보통 콘솔이나 어드민 페이지에서 모델 인스턴스를 표시하기 위해 사용한다
+
+* get_absolute_url
+
+~~~python
+def get_absolute_url(self):
+~~~
+
+디테일한 오브젝트의 URL을 알아내기 위해 사용한다. 유일하게 식별할 수 있는 URL을 가진 모든 오브젝트는 get_absolute_url 메소드를 정의해야만 한다.
+
+
+
+### Overriding predefined model methods
+
+커스텀 하기 원하는 database behavior을 포함한 모델 메소드도 있다. 특히, **save()** / **delete()** 의 방식을 변경하곤 한다
+
+~~~python
+from django.db import models
+
+class Blog(models.Model):
+    name = models.CharField(max_length=100)
+    tagline = models.TextField()
+    
+    def save(self, *args, **kwargs):
+        do_something()
+        super(Blog, self).save(*args, **kwargs) # 진짜 save 메소드를 호출한다
+        do_something_else()
+~~~
+
+~~~python
+from django.db import models
+
+class Blog(models.Model):
+    name = models.CharField(max_length=100)
+    tagline = models.TextField()
+    
+    def save(self, *args, **kwargs):
+        if self.name == "Yoko's blog":
+            return # name이 Yoko's blog 라면 절대로 save 할 수 없다
+        else:
+            super(Blog, self).save(*args, **kwargs)
+~~~
+
+**super**의 사용은 굉장히 중요하다. 만약 super를 호출하지 않으면 위 와 같은 경우 save 가 작동하지 않을 것이다
+
+(super를 사용하지 않으면 데이터베이스에도 접근하지 않고 아무런 기능도 하지 않을것이다)
+
+또한 **\*args**와 **\**kwargs**의 사용도 매우 중요하다
+
+
+
+>**오버라이딩된 모델 메소드는 bulk operation에 사용될 수 없다**
+
+
+
+### Executing custom SQL
+
+커스텀 SQL문을 작성하는 것 또한 일반적인 패턴이다. 더 자세한 raw SQL의 내용은 [여기](https://docs.djangoproject.com/en/1.11/topics/db/sql/)를 참고하자
+
+
+
+###  Model inheritance 
+
+모델상속은 파이썬의 클래스 상속과 비슷하다. 마찬가지로 django.db.models.Model 를 사용한다
+
+장고에서 가능한 세 가지 스타일의 모델 상속이 있다.
+
+1. 각각의 child model에서 정의하지 않기 위해서 사용하는 경우. 이러한 경우는 독립정으로 사용되지 않는다. 
+
+   [Abstract base class](https://docs.djangoproject.com/en/1.11/topics/db/models/#abstract-base-classes)
+
+2. 이미 존재하는 모델의 서브클래스 혹은 각각의 모델이 그 자신의 데이터베이스 테이블을 가지기 원할때 사용.
+
+   [Multi-table inheritance](https://docs.djangoproject.com/en/1.11/topics/db/models/#multi-table-inheritance)    
+
+3. 모델의 파이썬 레벨의 행동을 수정하고 싶을 때(어떠한 방식으로도 모델필드를 변경하지 않으면서)
+
+[Proxy model](https://docs.djangoproject.com/en/1.11/topics/db/models/#proxy-models)
+
+
+
+### Abstract base classes
+
+Abstract base classes 는 common info를 여럿 모델에 적용하고 싶을때 유용하게 사용된다. base class를 정의하고 abstract = True 를 Class Meta:에 두면된다. **Abstract 모델은 데이터베이스 테이블을 생성하지 않는다**
+
+대신에 다른 모델에 대한 base class로서 사용될 때 그것의 필드는 상속받는 클래스의 필드에 더해 질 것이다
+
+abstract class와 상속받는 class가 같은 필드명을 가지고 있다면 에러를 발생시킨다
+
+~~~python
+from django.db import models
+
+class CommonInfo(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.PositiveIntegerField()
+    
+    class Meta:
+        abstract = True
+        
+class Student(CommonInfo):
+    home_group = models.CharField(max_length=5)
+~~~
+
+Student 모델은 name / age / home_group 세 필드를 가질 것이다. CommonInfo 모델은 abstract 가 True 이기때문에 장고의 일반적인 모델로서 사용되지 않는다. manager 와 table 을 생성하지 않는다. 또한 인스턴스를 생성할 수 없고 직접적으로 save를 할 수 없다.
+
+
+
+### Meta inheritance
+
+abstract model
