@@ -595,4 +595,4 @@ Student 모델은 name / age / home_group 세 필드를 가질 것이다. Common
 
 ### Meta inheritance
 
-abstract model
+abstract base model이 생성되었을 때, 
