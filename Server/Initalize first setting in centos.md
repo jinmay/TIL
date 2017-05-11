@@ -40,10 +40,9 @@ yum install -y gcc
 약간의 시간이 걸린다
 
 ~~~shell
-
+# python.org에서 설치하려는 파이썬 버전을 선택한뒤
+# 링크를 복사해서 wget 이용해 서버에 설치
 ~~~
-
-
 
 ~~~shell
 ./configure

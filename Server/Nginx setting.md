@@ -49,9 +49,33 @@ repo. 에 대한 정보는 [here](http://nginx.org/en/linux_packages.html#stable
 yum install nginx
 ~~~
 
+* 서버 구동
+
+~~~shell
+sudo systemctl start nginx
+~~~
+
+* 부팅 시 자동으로 구동
+
+~~~shell
+sudo systemctl enable nginx
+~~~
+
+* nginx 설정 문법 체크
+
+~~~shell
+nginx -t -c /etc/nginx/nginx.conf
+~~~
 
 
 
+
+
+
+
+
+
+<hr>
 
 ##### 참고 사이트
 
