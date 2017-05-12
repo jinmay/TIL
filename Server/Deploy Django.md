@@ -266,7 +266,7 @@ uwsgi --socket :8001 --wsgi-file test.py
 
 다른옵션을 사용했다는 것을 제외하면 이전에 했던것과 매우 비슷하다
 
-- `socket :8001`: use protocol uwsgi, pqqort 8001
+- `socket :8001`: use protocol uwsgi, qort 8001
 
 nginx가 8001번 포트를 가지고 uWSGI와 통신하는 동안에 바깥에서는 8000번 포트를 가지고 통신한다
 
@@ -323,5 +323,79 @@ uwsgi --socket mysite.sock --wsgi-file test.py --chmod-socket=664 # (more sensib
 
 nginx가 소켓에 적절하게 읽고 쓰기를 가능하게 하기 위해서, nginx 그룹에 사용자를 추가해야한다.
 
-It’s worth keeping the output of the nginx log running in a terminal window so you can easily refer to it while troubleshooting.
+**You may also have to add your user to nginx’s group (which is probably www-data), or vice-versa, so that nginx can read and write to your socket properly.**
 
+> 참고
+>
+> permission deny 문제를 해결하지 못한 채 밑에 있는 .ini file 을 만들고 했더니 됐다.
+>
+> 이유를 모르겠음
+
+## Configuring uWSGI to run with a .ini file
+
+uWSGI에 사용했던 것 처럼 동일한 옵션을 사용할 수 있다. 이러한 방법은 설정을 다루는 데 있어서 더 편리하다
+
+``mysite_uwsgi.ini``라는 이름의 파일을 만들어보자
+
+```shell
+# 각자의 환경에 맞게 바꿔줘야 한다
+# mysite_uwsgi.ini file
+[uwsgi]
+
+# Django-related settings
+# the base directory (full path)
+chdir           = /path/to/your/project
+# Django's wsgi file
+module          = project.wsgi
+# the virtualenv (full path)
+home            = /path/to/virtualenv
+
+# process-related settings
+# master
+master          = true
+# maximum number of worker processes
+processes       = 10
+# the socket (use the full path to be safe
+socket          = /path/to/your/project/mysite.sock
+# ... with appropriate permissions - may be needed
+# chmod-socket    = 664
+# clear environment on exit
+vacuum          = true
+```
+
+그리고 이 파일을 이용해서 uwsgi를 구동하자 : 
+
+```
+uwsgi --ini mysite_uwsgi.ini # the --ini option is used to specify a file
+```
+
+Once again, test that the Django site works as expected.
+
+## Install uWSGI system-wide
+
+지금까지 uWSGI는 가상환경에서만 사용했는데 배포를 위해서는 system-wide 한 설치를 필요로 한다
+
+Deactivate your virtualenv :
+
+```
+deactivate
+```
+
+uWSGI를 system-wide 하게 설치 :
+
+```
+sudo pip install uwsgi
+
+# Or install LTS (long term support).
+pip install https://projects.unbit.it/downloads/uwsgi-lts.tar.gz
+```
+
+uWSGI 위키는 설치절차를 제공한다 : [installation procedures](https://projects.unbit.it/uwsgi/wiki/Install)
+
+uWSGI를 system-wide 하게 설치하기 이전에, 어느 버전을 설치할 것인지와 어떤 방식으로 설치하는 게 가장 적절할 것인지에 대해 고민해보는 것이 좋다
+
+uWSGI 구동 : 
+
+```
+uwsgi --ini mysite_uwsgi.ini # the --ini option is used to specify a file
+```
