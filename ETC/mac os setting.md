@@ -41,5 +41,25 @@ export PIP_REQUIRE_VIRTUALENV=true
 export PIP_DOWNLOAD_CACHE=$HOME/.pip/cache
 ~~~
 
+**global 영역으로 pip 사용할 때**
 
+~~~shell
+gpip(){
+  PIP_REQUIRE_VIRTUALENV="" pip "$@"
+}
+~~~
+
+를 .zshrc 에 추가한다
+
+이후에 gpip를 이용하여 전역적으로 pip를 사용할 수 있다
+
+
+
+
+
+
+
+##### 참고
+
+[http://knot.tistory.com/102](http://knot.tistory.com/102)
 
