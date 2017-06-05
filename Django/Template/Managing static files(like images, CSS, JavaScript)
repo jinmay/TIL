@@ -1,0 +1,53 @@
+# Managing static files(like images, CSS, JavaScript)
+
+웹 사이트는 일반적으로 이미지, 자바스크립트, 스타일시트와 같은 추가적인 파일들을 서빙할 필요가 있다
+
+장고에서는 위와 같은 파일들을 **static file** 이라고 부른다
+
+**django.contrib.staticfiles** 을 통해서 관리하는 데 도움을 받을 수 있다
+
+
+
+### Configuring static files
+
+1. settings.py 의 INSTALLED_APP에 **django.contrib.staticfiles** 가 있어야 한다
+
+~~~python
+# settings.py
+INSTALLED_APPS = [
+  ...,
+  'django.contrib.staticfiles',
+]
+~~~
+
+2. settings.py에 **STATIC_URL** 정의 : 
+
+~~~python
+# settings.py 
+# example
+STATIC_URL = '/static/'
+~~~
+
+3. 템플릿 안에, 하드코딩된 url(/static/my_app/example.jpg와 같은)이 있다면 **static** 템플릿 태그를 사용함으로써 url을 만들 수 있다. (static files 서빙을 위한 CDN을 교체할 때 도움을 준다)
+
+~~~python
+{% load static %}
+<img src={% static "my_app/example.jpg"}
+~~~
+
+4. 위  와 같이 사용하려면 example.jpg 파일이 **my_app의 static** 디렉터리에 있어야 한다
+
+   **my_app/static/my_app/example.jpg**
+
+
+
+* 특정 앱에 포함되지 않는 static files 들은 Template loader 와 유사하게 처리하면 된다
+
+~~~python
+STATICFILES_DIRS = [
+  os.path.join(BASE_DIR, 'static')
+]
+~~~
+
+namespace의 개념으로 app_name을 적어주는 것도 좋은 방법이다
+
