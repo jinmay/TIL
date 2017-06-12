@@ -206,7 +206,7 @@ RDB의 장점은 서로가  관계맺는 것에 있다. 장고는 세 가지의 
 
 1. Many-to-one relationships
 
-many-to-many 관계를 정의하기 위해서 django.db.models.ForeignKey를 사용한다. 단지 어떠한 필드 타입을 사용하는 것처럼 사용하기만 하면된다 - 관계맺을 모델 클래스를 포함하면서.
+many-to-many 관계를 정의하기 위해서 django.db.models.ForeignKey를 사용한다. 단지 필드 타입을 사용하는 것처럼 사용하기만 하면된다 - 관계맺을 모델 클래스를 포함하면서.
 
 **ForeignKey**는 positional argument를 필요로 한다 
 
