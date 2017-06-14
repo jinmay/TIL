@@ -262,3 +262,285 @@ inode 확인 : ls -il
 
 **하드링크는 정상적으로 작동하고, 심볼릭링크는 작동하지 않는다!!**
 
+* 패키지 설치
+
+##### YUM
+
+Yellowdog Updater Modified
+
+> rpm의 패키지 의존성 문제를 해결할 수 있다
+>
+> 인터넷을 통해 필요한 패키지를 repository에서 자동으로 다운로드 하고 설치한다
+>
+> **저장소의 url은 /etc/yum.repos.d/** 이다
+
+~~~shell
+# 기본 설치
+yum install
+yum -y install <package name> # 사용자의 확인을 모두 yes 간주하고 설치
+
+# 업데이트 목록 확인
+yum check-update
+
+# 업데이트
+yum update <name>
+
+# 삭제 
+yum remove <name>
+
+# 정보확인
+yum info <name>
+
+# 패키지 그룹 설치
+yum groupinstall <package group name>
+
+# 패키지 리스트 확인
+yum list <package name>
+
+# 저장소 목록 지우기
+## 간혹 yum에 문제 있을때 사용
+yum clean all
+~~~
+
+* 파일 압축, 묶기
+
+##### 압축
+
+xz와 bz2가 압축률이 좋다
+
+압축을 하면 원본파일은 없어진다
+
+ 압축과 묶는 것은 다르다
+
+##### 묶기
+
+tar
+
+동작 : c - 묶기 / x - 풀기 / t - 경로확인
+
+옵션 : f - 파일 / v - 과정보이기 / J - (tar + xz) / z - (tar + gzip) / j - (tar + bzip2)
+
+~~~shell
+# 묶기
+tar cvf sample.tar file1 file2
+
+# 묶기 + xz 압축
+tar cvfJ sample.tar.xz file1 file2 file3
+
+# tar 풀기
+tar xvf sample.tar
+
+# tar 풀기 + 압출 해제
+tar xvfJ sample.tar.xz
+~~~
+
+* 파일 찾기
+
+find 경로 옵션 조건 action : 기본파일 찾기
+
+> 옵션
+>
+> -name / -user / -newer / -perm / -size
+>
+> action
+>
+> -print(default) / -exec(외부명령 실행)
+
+~~~shell
+find /etc -name "*.conf"
+
+find /bin -size +10k -size -100k
+
+# /home 디렉터리에 있는 모든 .swp 파일을 찾아서 지운다
+# -exec \; 사이에 있는 명령을 수행
+find /home -name "*.swp" -exec rm {} \;
+~~~
+
+which - PATH에 설정된 디렉터리만 검색
+
+whereis - 실행 파일, 소스, man 페이지 파일까지 검색
+
+locate - 파일 목록 데이터베이스에서 검색
+
+* cron과 at
+
+##### cron
+
+주기적으로 반복되는 일을 자동으로 실행하기 위해 설정
+
+관련 데몬은 crond 
+
+파일은 /etc/crontab
+
+~~~shell
+# 매 시간 1분마다 curl localhost 실행
+01 * * * * root curl localhost
+
+# 새일 3시 2분마다 실행
+02 3 * * * root curl localhost
+
+# 매월 1일 4시 42분에 실행
+42 4 1 * * root curl localhost
+~~~
+
+##### at
+
+일회성 작성 예약
+
+~~~shell
+at <time>
+
+# 내일 새벽 3시
+at 3:00am tomorrow
+
+# 지금으로부터 1시간 후
+at now + 1 hours
+
+를 입력하면 실행할 명령어를 적는 프롬프트가 나오고
+입력 후 
+컨트롤 + D
+
+예약 리스트 확인 : at -l
+취소 : atrm <작업번호>
+~~~
+
+* 네트워크 관련 명령어
+
+##### nmtui
+
+네트워크와 관련된 대부분의 작업을 수행
+
+> 자동 IP주소 또는 고정 IP주소 사용결정
+>
+> IP주소, 서브넷 마스크, 게이트웨이 정보 입력
+>
+> DNS 정보입력
+>
+> 네트워크 카드 드라이버 설정
+>
+> 네트워크 장치 설정
+
+텍스트 기반으로 작동한다
+
+##### systemctl
+
+systemctl <start / stop / restart / status> network
+
+네트워크 설정을 변경한 후, 시스템에 적용을 하기위해 수행해야 함!
+
+##### ifdown / ifup
+
+네트워크 장치를 on / off 한다
+
+~~~shell
+ifup eno12312
+ifdown eno2312312
+~~~
+
+##### ifconfig
+
+IP주소 설정 정보 출력
+
+##### nslookup
+
+DNS 서버 테스트
+
+##### ping
+
+네트워크상에서 응답하는지 테스트
+
+<hr>
+
+/etc/sysconfig/network - 네트워크의 기본적인 정보가 설정되어 있는 파일
+
+/etc/sysconfig/network-scripts/ifcfg-<장치이름> - 장치에 설정되어 있는 네트워크 정보가 모두 들어있는 파일
+
+/etc/resolv.conf - DNS 서버의 정보 및 호스트 이름이 있는 파일
+
+/etc/hosts - 현재 컴퓨터의 호스트 이름 및 FQDN이 들어있는 파일
+
+* 파이프, 필터, 리다이렉션
+
+##### 파이프
+
+명령어를 연결해준다
+
+|
+
+~~~shell
+ls -l /etc | more
+~~~
+
+##### 필터
+
+필터링해줌
+
+파이프와 같이 자주 사용된다
+
+~~~shell
+ps -ef | grep bash
+~~~
+
+##### 리다이렉션
+
+표준 입출력의 방향을 바꾸어 줌
+
+~~~shell
+ls -l > list.txt
+
+sort < list.txt > out.txt
+~~~
+
+* 프로세스, 데몬
+
+프로세스 : 메모리에 로딩되어 활성화 된 것
+
+포그라운드 프로세스 : 눈에 보이는 프로세스(대부분의 응용프로그램)
+
+백그라운드 프로세스 : 눈에 보이지 않는 프로세스(백신, 서버 데몬)
+
+프로세스 번호 : 각 프로세스가 가지고 있는 고유번호
+
+작업 번호 : 현재 실행되고 있는 백그라운드 프로세스의 순차번호
+
+부모 프로세스 : 모든 프로세스는 부모 프로세스를 가지고 있고 부모 프로세스를 kill 하면 자식 프로세스도 자동으로 kill 됨
+
+##### ps
+
+현재 프로세스의 상태 확인
+
+주로 
+
+~~~shell
+ps -ef | grep <process name>
+~~~
+
+을 사용
+
+##### kill
+
+프로세스 강제 종료
+
+~~~shell
+kill -9 <process id>
+~~~
+
+##### pstree
+
+부모 프로세스와 자식 프로세스의 관계를 트리 형태로 출력
+
+* 서비스와 소켓
+
+##### 서비스
+
+시스템과 독자적으로 구동되어 제공하는 프로세스
+
+예를 들면 = 웹 서버(httpd) / db 서버( mysqld) / ftp 서버(vsftpd) 등이 있다
+
+실행과 종료는 'systemctl start / stop / restart <name>' 으로 자주 사용
+
+##### 소켓
+
+서비스는 항상 가동되지만, 소켓은 외부에서 특정 서비스를 요청 할 경우에만 systemd 가 구동시키는것 이다
+
+요청이 끝나면 소켓도 종료
