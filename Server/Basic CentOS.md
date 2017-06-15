@@ -537,10 +537,22 @@ kill -9 <process id>
 
 예를 들면 = 웹 서버(httpd) / db 서버( mysqld) / ftp 서버(vsftpd) 등이 있다
 
-실행과 종료는 'systemctl start / stop / restart <name>' 으로 자주 사용
+실행과 종료는 'systemctl start / stop / restart \<name>' 으로 자주 사용
 
 ##### 소켓
 
 서비스는 항상 가동되지만, 소켓은 외부에서 특정 서비스를 요청 할 경우에만 systemd 가 구동시키는것 이다
 
 요청이 끝나면 소켓도 종료
+
+* 쉘 스크립트
+
+\#! /bin/\<shell name> 으로 시작해야 하며 예를 들어 zsh을 사용중 이라면 **#! /bin/zsh**를 사용해야 한다
+
+~~~shell
+#! /bin/sh
+echo "사용자이름: " $USERNAME # 로그인 사용자 이름 출력
+~~~
+
+변수는 미리 선언하지 않으며, 모든 변수는 문자열로 취급하고 대입할 때 '=' 좌우에는 공백이 없어야 한다
+
