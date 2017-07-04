@@ -42,3 +42,18 @@ drop database <DB명>
 \q
 ~~~
 
+* 테이블 정의
+
+~~~python
+CREATE TABLE <table_name> (
+	column1 datatype,
+    column2 datatype,
+)
+~~~
+
+* 테이블 데이터 삭제
+
+~~~python
+DELETE from <table_name>
+~~~
+
