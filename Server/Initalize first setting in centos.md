@@ -108,3 +108,22 @@ sudo systemctl enable postgresql
 sudo su - postgres
 ~~~
 
+4. virtualenv 설정하기
+
+virtualenv 환경을 실행하지 않았을때는 패키지 관리를 하지 못하도록 한다
+
+~~~shell
+# virtualenv가 activate 일때만 pip 를 사용
+export PIP_REQUIRE_VIRTUALENV=true
+export PIP_DOWNLOAD_CACHE=$HOME/.pip/cache
+~~~
+
+그러나 전역적으로 패키지 관리가 필요한 경우도 있기 때문에 다음과 같이 설정해준다
+
+~~~shell
+# gpip로 전역적인 파이썬 패키지 관리를 이용할 수 있다
+gpip(){
+    PIP_REQUIRE_VIRTUALENV="" pip "$@"
+}
+~~~
+
