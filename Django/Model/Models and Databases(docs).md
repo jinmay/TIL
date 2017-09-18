@@ -406,3 +406,150 @@ class Ox(models.Model):
 
 ##### model methods
 
+특정한 모델 인스턴스에서 사용할 수 있는 모델 메서드를 정의할 수 있다
+
+비즈니스 로직을 한 곳(모델)에서 관리할 수 있는 좋은 테크닉이다 
+
+~~~python
+from django.db import models
+
+class Person(models.Model):
+first_name = models.CharField(max_length=50) 
+last_name = models.CharField(max_length=50) 
+birth_date = models.DateField()
+
+	def baby_boomer_status(self):
+	"Returns the person's baby-boomer status." 
+    import datetime
+		if self.birth_date < datetime.date(1945, 8, 1):
+			return "Pre-boomer"
+		elif self.birth_date < datetime.date(1965, 1, 1):
+			return "Baby boomer" 
+        else:
+			return "Post-boomer"
+          
+    @property
+    def full_name(self):
+	    "Returns the person's full name."
+    	return '%s %s' % (self.first_name, self.last_name)
+~~~
+
+각 모델에 기본으로 생성되는 메서드들이 있는데 override 가능하다. 그 중에서 거의 항상 사용되는 두 가지가 있다 : 
+
+* \__self__()
+
+모델 인스턴스가 문자열로 표현되어야 할때 사용한다. 주로 콘솔이나 어드민에서 자주 사용된다
+
+* get_absolute_url
+
+장고에게  특정 object의 URL을 어떻게 계산할 지 말해준다. 
+
+
+
+##### overriding predefined model methods
+
+커스텀하고 싶은 일련의 데이터베이스 수행을 요약한 모델 메서드 셋이 있으며, 특히 **save()와 delete()** 메서드를 재정의하는 빈도가 높다. 빌트인 메서드를 재정의하는 클래식한 케이스로는 특정 오브젝트를 저장할 때 추가 행동들을 덧붙이는 것이다. 
+
+~~~python
+from django.db import models
+
+class Blog(models.Model):
+  name = models.CharField(max_length=100)
+  tagline = models.TextField()
+  
+  def save(self, *args, **kwargs):
+    do_something()
+	super(Blog, self).save(*args, **kwargs)  # Call the "real" save() method. 
+    do_something_else()
+~~~
+
+~~~python
+from django.db import models
+
+class Blog(models.Model):
+	name = models.CharField(max_length=100) 
+    tagline = models.TextField()
+	
+    def save(self, *args, **kwargs):
+		if self.name == "Yoko Ono's blog":
+			return # blog name이 "Yoko Ono's blog"인 경우 save() 호출불가
+        else:
+			super(Blog, self).save(*args, **kwargs) # Call the "real" save() method.
+~~~
+
+**super()를 호출하는 것은 매우 중요하다.** - 원래의 save 함수를 호출하지 않으면 작동하지 않기 때문이다
+
+또한 **인자를 넘겨주는 것도 중요한데** **\*args / \*\*kwargs 를 사용하게 되면 문제없이 함수를 정의할 수 있다** 
+
+
+
+##### executing custom SQL
+
+모델과 모듈 레벨의 메서드에 커스텀 SQL문을 작성할 수 있다
+
+
+
+##### model inheritance
+
+장고에서의 모델 상속은 파이썬에서의 일반적인 클래스 상속처럼 작동한다. 
+
+parent  model이 child model을 통해추상적으로 공통된 정보를 가진 모델인지, 아니면 일반 모델과 같은지 생각해보아야 한다
+
+장고에는 세 가지 스타일의 모델 상속이 있다 : 
+
+* Abstract base model 
+* multi-table inheritance
+* proxy model
+
+
+
+##### abstract base classes
+
+abstract base class는 공통되는 정보를 여러 모델에 입력해야 할 때 유용하다. 필드를 정의하고 **class Meta에 abstract=True** 라고 정의해주면 된다. 그렇다면 이 모델은 어떤 데이터베이스 테이블도 생성하지 않게 된다. 대신에, 다른 모델의 base 모델로서 사용될 때, abstract model의 필드들은 child model의 필드에 더해지게 된다. 이 때에 child model과 abstract model에 같은 이름의 필드가 있다면 에러가 발생하게 된다(장고는 예외를 발생시킨다)
+
+~~~python
+from django.db import models
+
+class CommonInfo(models. Model):
+  name = models.CharField(max_length=100) 
+  age = models.PositiveIntegerField()
+  
+  class Meta:
+    abstract = True
+    
+class Student(CommonInfo):
+  home_group = models.CharField(max_length=5)
+~~~
+
+위의 예시에서 Student 모델은 세 개의 필드를 가지게 된다: name / age / home_group
+
+CommonInfo 모델은 Class Meta의 abstract = True로 인해 장고의  일반적인 모델로서 사용되지 않는다 - 어떠한 데이터베이스 테이블도 만들지 않고, 모델 매니저도 없고, 인스턴스도 생성할 수 없다.
+
+
+
+##### Meta inheritance
+
+만약 child 모델에서 Class Meta를 정의하지 않는다면 parent 모델의 Meta를 자동으로 상속하게 된다. parent 모델의 Meta를 상속받음과 동시에 확장하고 싶다면 **Class Meta를 상속받아야 한다**
+
+~~~python
+from django.db import models
+
+class CommonInfo(models.Model):
+  # ...
+  class Meta:
+    abstract = True
+    ordering = ['name']
+    
+class Student(CommonInfo):
+  # ...
+  class Meta(CommonInfo.Meta):
+    db_table = 'student_info'
+~~~
+
+**abstract 모델의 child 모델은 자동적으로 abstract 되지 않는다.** 물론 abstract 모델로부터 상속받은 모델을 abstract 모델로 만들 수는 있다. **중요한건 abstract 모델로 만들고 싶다면 꼭 Meta class에서 abstract = True를 명시적으로 적어주어야 한다는 것이다**
+
+
+
+##### Be careful with 'related_name' and 'related_query_name'
+
+ForeignKey와 ManyToManyField에서 'related_name'과 'related_query_name'을 이용할때에 **
