@@ -552,4 +552,161 @@ class Student(CommonInfo):
 
 ##### Be careful with 'related_name' and 'related_query_name'
 
-ForeignKey와 ManyToManyField에서 'related_name'과 'related_query_name'을 이용할때에 **
+ForeignKey와 ManyToManyField에서 'related_name'과 'related_query_name'을 이용할때에 **명확한 reverse name**또는 **명확한 query name**을 적어주어야 한다. 
+
+~~~python
+from django.db import models
+
+class Base(models.Model):
+m2m = models.ManyToManyField(
+				OtherModel, related_name="%(app_label)s_%(class)s_related", 			
+  				related_query_name="%(app_label)s_%(class)ss",
+				)
+
+class Meta: 
+  abstract = True
+  
+class ChildA(Base):
+  pass
+
+class ChildB(Base):
+  pass
+~~~
+
+
+
+##### multi-table inheritance
+
+모델 상속의 두 번째 타입은
+
+~~~python
+from django.db import models
+
+class Place(models.Model):
+	name = models.CharField(max_length=50) 
+	address = models.CharField(max_length=80)
+    
+class Restaurant(Place):
+	serves_hot_dogs = models.BooleanField(default=False) 
+	serves_pizza = models.BooleanField(default=False)
+~~~
+
+Restaurant에 자동적으로 OneToOneField()가 아래와 같이 생성이 되며 관계를 가지게 된다
+
+~~~python
+place_ptr = models.OneToOneField( 
+  	Place, 
+  	on_delete=models.CASCADE, 
+  	parent_link=True,
+)
+~~~
+
+
+
+비록 데이터가 Restaurant에 있다고 하더라도 Place의 내용을 접근할 수 있다
+
+~~~python
+Place.objects.filter(name='example')
+Restaurant.objects.filter(name='example') # Restaurant가 Place를 상속받고 있기 때문에 가능
+~~~
+
+모델이름을 소문자로 적음으로써 Place 객체로부터 Restaurant 객체를 얻을 수 있다
+
+~~~python
+p = Place.objects.first()
+p.restaurant
+~~~
+
+
+
+##### meta and multi-table inheritance
+
+multi-table 상속관계에서, child 클래스의 Meta 를 부모로부터 상속받는 것은 적합하지 않다. 모든 메타 클래스의 속성들은 이미 부모 클래스에 적용되어 있고, 그것들을 다시 정의하는 것은 일반적으로 모순되는 행동이다. (반대로 abtract base class 에서는 사용된다)
+
+그렇기 때문에 child model은 부모의 모델의 meta에 접근해서는 안된다. 그러나 아래와 같은 이유로 인해서 일반적이지는 않지만 상속받는 경우가 있다
+
+~~~python
+class ChildModel(ParentModel):
+  pass 
+  class Meta:
+	# 부모 모델의 정렬효과를 무효화 한다
+    ordering = []
+~~~
+
+##### inheritance and reverse relations
+
+멀티테이블 상속은 부모와 자식 모델을 연결하기 위해 암묵적인 OneToOneField를 사용하기 때문에, 
+
+##### specifying the parent link field
+
+장고는 child 모델을 non-abstract 모델과 연결하기 위해 내부적으로 OneToOneField를 사용하게 된다. child 모델에 부모 모델과 연결할때 사용되는 onetoone 필드가 생성되며 이름은 자동적으로 지어지게 되는데 **parent_link=True 옵션을 사용한 OneToOneField 를 이용함으로써 필드명을 지정할 수 있다**
+
+##### proxy model
+
+멀티테이블 상속을 하게 될때 새로운 테이블이 생성된다. 이것은 서브클래스가 부모클래스에 없는 데이터 필드를 저장할 장소를 필요로 하기 때문이다. 
+
+> 원래 모델의 프록시 모델을 만든다고 생각하면 될 것 같다. 
+
+프록시 모델의 인스턴스를 생성, 삭제, 수정할 수 있으며 마치 원래 모델을 이용하는 것처럼 데이터는 저장될 것이다. 두 모델의 차이점은 원래 모델의 변경 없이 추가적으로 정렬한다던가 기본 매니저를 변경한다던가 할 수 있다는 것이다. 
+
+~~~python
+from django.db import models
+
+class Person(models.Model):
+	first_name = models.CharField(max_length=30) 
+    last_name = models.CharField(max_length=30)
+    
+class MyPerson(Person): 
+  class Meta:
+	proxy = True
+	
+    def do_something(self): 
+      	# ...
+		pass
+~~~
+
+프록시 모델은 Meta 클래스에 **proxy=True**를 정의함으로써 만들 수 있다. 위 의 예시에서는 새로운 메소드를 추가하였다.
+
+MyPerson 모델은 부모 모델인 Person 과 똑같이 행동한다. Person의 인스턴스에 접근하는 것처럼 MyPerson의 인스턴스에도 엑세스할 수 있다.
+
+~~~python
+p = Person.object.first()
+mp = MyPerson.object.first()
+~~~
+
+또한 기존의 정렬을 바꾸기 위해서 프록시 모델을 사용하기도 한다. 
+
+~~~python
+class OrderedPerson(Person):
+  class Meta:
+    ordering = ['first_name']
+    proxy = True
+~~~
+
+##### querysets still return the model that was requested
+
+Person 모델에 대한 쿼리셋은 그 모델(Person)의 타입을 리턴한다. (Person 모델에 대해 쿼리를 생성했을때 절대로 MyPerson 모델 오브젝트를 리턴할 수 없다)
+
+##### base class restrictions(수정)
+
+프록시 모델은 반드시 non-abstract 모델로부터 상속을 받아야 한다. 프록시 모델이 다른 데이터베이스 테이블의 행 사이에서 어떠한 관계도 찾을 수 없을때 multiple non-abstract 모델로부터 상속 받을 수 없다.
+
+##### proxy model manager
+
+프록시 모델에 대한 어떠한 매니저도 정의하지 않았다면 부모 모델로부터 모델 매니저를 상속받는다. 만약 프록시 모델에서 모델 매니저를 정의했다면 부모 모델에서 정의된 매니저가 있을지라도 새로 정의된 매니저가 디폴트 매니저로서 역할을 수행한다
+
+~~~python
+from django.db import models 
+
+class NewManager(models.Manager):
+  # ...
+  pass
+
+class MyPerson(Person):
+	objects = NewManager()
+   	class Meta: 
+      proxy = True
+~~~
+
+##### differences between proxy inheritance and unmanaged model
+
