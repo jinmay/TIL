@@ -8,7 +8,6 @@
 * 모델의 속성(attribute)는 데이터베이스 필드를 나타낸다
 * 모델을 가지고, 장고는 자동으로 생성되는 database-access API 사용을 가능하게 해준다
 
-예제
 
 ~~~python
 from django.db import models
@@ -601,8 +600,6 @@ place_ptr = models.OneToOneField(
 )
 ~~~
 
-
-
 비록 데이터가 Restaurant에 있다고 하더라도 Place의 내용을 접근할 수 있다
 
 ~~~python
@@ -633,7 +630,7 @@ class ChildModel(ParentModel):
     ordering = []
 ~~~
 
-##### inheritance and reverse relations
+##### inheritance and reverse relations(수정필요)
 
 멀티테이블 상속은 부모와 자식 모델을 연결하기 위해 암묵적인 OneToOneField를 사용하기 때문에, 
 
@@ -710,3 +707,25 @@ class MyPerson(Person):
 
 ##### differences between proxy inheritance and unmanaged model
 
+프록시 모델의 상속은 unmanaged model을 만드는 것과 꽤 비슷하게 보일 수 있다  
+(모델 Meta class에서 unmanaged 옵션을 줌으로써 만들 수 있는 unmanaged  model)
+
+Meta.db_table 속성을 통해서 프록시 모델처럼 행동하는(원래 모델을 shadowing 하는) 모델을 만들 수 있다. 하지만  어떠한 변화가 있든 원래 모델과 unmanaged model 양쪽에 동기화하려고 하면 Meta.db_table 속성은 매우 반복적이고 유의해야 하는 작업일 것이다
+
+반면에, 프록시 모델은 proxying 하려는 원래 모델처럼 동작한다. 부모 모델의 필드와 매니저를 직접적으로 상속받기 때문에 프록시 모델은 항상 부모 모델과 동기화 되어 있다.
+
+일반적인 규칙은 다음과 같다 : 
+
+1. 만약 존재하고 있는 모델 또는 데이터베이스 테이블을 미러링하고 있고 원래의 모든 데이터베이스 테이블의 컬럼을 필요로하지 않는다면, **Meta.managed = False**를 이용해라. 이 옵션은 데이터베이스 뷰와 테이블을 모델링 하는 데에 유용하다(장고의 간섭을 받지 않고)
+2. 만약 모델의 Python-only behavior를 변경하면서, 원본과 동일한 필드를 모두 유지하려면 **Meta.proxy = True** 를 사용해라. 이렇게하면 데이터를 저장할 때 프록시 모델이 원본 모델의 저장소 구조와 정확히 일치하도록 설정된다.
+
+##### Multiple inheritance
+
+단순 파이썬 상속처럼, 장고의 모델도 여러 부모 모델 클래스를 상속받을 수 있다. 파이썬 이름규칙이 그대로 적용되는 것에 유의하자. **첫 번째로 상속하는 모델 클래스의 Meta Class만이 상속되며, 다른 meta class 는 모두 무시된다**
+
+일반적으로, 다중상속은 사용되지 않는다. 주된 사용 케이스는 **mix-in 클래스**이다 : 특정한 추가적인 필드 또는 메소드를 상속할 모든 클래스에 적용하기 위해.
+
+가능한 직관적이고 간단한 상속 계층을 유지하려고 노력하자 - 어떤 필드 혹은 메소드가 어디로부터 왔는지 힘쓸 필요가 없다
+
+
+각각 PK를 가진 모델로부터 다중상속 받으면 에러가 발생함에 유의하자. **다중상속을 적절하게 사용하기 위해서 base model에 AutoField를 적어주는 것이 좋다** 
