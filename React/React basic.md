@@ -6,7 +6,7 @@
 
 Facebook에서 만든 User Interface Library이다. Framework가 아닌 Library이며 혼동하지 말자. 주요 장점으로는 컴포넌트 단위로 재사용가능한 UI template을 만들 수 있다는 것이다. 이는 리액트만의 Virtual DOM을 이용하여 상태(state)가 변경되었을 때만 UI를 선택적으로 랜더링함으로써 최소한의 DOM 처리로 컴포넌트를 업데이트 할 수 있다는 장점이 있다.
 
-2. props
+2. props / state
 
 부모 컴포넌트는 하위 컴포넌트로 데이터를 줄때 props를 이용할 수 있다. 
 
@@ -178,3 +178,8 @@ function MoviePoster({poster}) {
 
 위의 두 코드는 동일하게 작동한다.
 
+<br>
+
+3. promise
+
+promise는 새로운 자바스크립트 컨셉이다. 
